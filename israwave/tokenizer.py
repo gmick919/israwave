@@ -4,6 +4,42 @@ from israwave.logging import log
 
 WHITESPACE_RE = re.compile(r"\s+")
 
+rules = [
+    ["ˈalef", ""],
+    ["jˈod", "i"],
+    ["tˈav", "t"],
+    ["mˈem", "m"],
+    ["ʁˈejʃ", "ʁ"],
+    ["vˈet", "v"],
+    ["bˈet", "b"],
+    ["gˈimel", "g"],
+    ["ɡˈimel", "g"],
+    ["dˈalet", "d"],
+    ["hˈe", "h"],
+    ["vˈav", "v"],
+    ["zˈajin", "z"],
+    ["χˈet", "χ"],
+    ["tˈet", "t"],
+    ["χˈaf", "χ"],
+    ["lˈamed", "l"],
+    ["nˈun", "n"],
+    ["sˈameχ", "s"],
+    ["ˈajin", ""],
+    ["fˈe", "f"],
+    ["pˈe", "p"],
+    ["tsˈadi", "t"],
+    ["kˈof", "k"],
+    ["ʃˈin", "ʃ"],
+    ["sˈin", "s"],
+    ############
+    ["ʃvˈɑ", ""],
+    ["ʃvˈa", ""],
+    ["dˈaɡɛʃ", ""],
+    ["dˈagɛʃ", ""],
+    ############
+    ["hˈiːbɹuː", ""],
+]
+
 class IPATokenizer:
     def __init__(self, espeak_data_path = None) -> None:
         self.espeak_data_path = espeak_data_path
@@ -30,7 +66,17 @@ class IPATokenizer:
         text = self.preprocess_text(text, language)
         # Phonemize        
         phonemes = phonemize_espeak(text, language, data_path=self.espeak_data_path)
-        return phonemes, text
+        new_phonemes = []
+        for phones in phonemes:
+            str = ' ' + ' '.join(phones) + ' '
+            for rule in rules:
+                fromPhones = [x for x in rule[0]]
+                toPhones = [x for x in rule[1]]
+                fromStr = ' ' + ' '.join(fromPhones) + ' '
+                toStr = ' ' if not toPhones else ' ' + ' '.join(toPhones) + ' '
+                str = re.sub(fromStr, toStr, str)
+            new_phonemes.append(str.strip().split(' '))
+        return new_phonemes, text
     
     def tokenize(self, text, language):
         try:
